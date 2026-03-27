@@ -1,6 +1,6 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { User } from '@angular/fire/auth';
 import { AuthService } from '../../services/auth-service';
 
@@ -17,17 +17,19 @@ export class Header implements OnInit {
   user$ = this.authService.user$;
   user = toSignal(this.user$, { initialValue: null });
   appTitle = signal('Appidea');
-  btnMessage = computed(() => (this.user() ? 'sign out' : 'sign in'));
-  btnRouterLink = computed(() => (this.user() ? '/' : '/auth'));
+  btnMessage = computed(() => (this.user() !== null ? 'sign out' : 'sign in'));
 
   ngOnInit(): void {
     this.authService.onLogin$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
-      if (user) this.onUserAvailable(user);
+      if (user) {
+      } else {
+      }
     });
   }
 
-  private onUserAvailable(user: User): void {
-    // TODO: setze hier deine Aktion bei Login
-    console.log('User logged in:', user.uid);
+  async logoutOrSignin() {
+    if (this.user !== null) {
+      await this.authService.logout();
+    }
   }
 }

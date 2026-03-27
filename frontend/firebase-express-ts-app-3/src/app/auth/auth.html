@@ -1,1 +1,67 @@
-<p>auth works!</p>
+<form (submit)="onSubmit($event)" class="form">
+  <div class="form__auth-type">
+    <div
+      class="form__auth-tab"
+      [class.is-active]="authMode() === 'login'"
+      (click)="setAuthMode('login')"
+    >
+      login
+    </div>
+    <div
+      class="form__auth-tab"
+      [class.is-active]="authMode() === 'signin'"
+      (click)="setAuthMode('signin')"
+    >
+      sign in
+    </div>
+  </div>
+
+  <div class="form__field">
+    <label for="">Email</label>
+    <input
+      [formField]="form.email"
+      id="email"
+      type="email"
+      placeholder="Enter e-mail..."
+      autocomplete="off"
+      autofill="none"
+    />
+    @if (form.email().touched() && form.email().invalid()) {
+      <span>Email is not valid</span>
+    }
+  </div>
+
+  <div class="form__field">
+    <label for="">Password</label>
+    <input
+      [formField]="form.password"
+      id="password"
+      type="password"
+      placeholder="Enter password..."
+      autocomplete="off"
+      autofill="none"
+    />
+    @if (form.password().touched() && form.password().invalid()) {
+      <span>Password is not valid</span>
+    }
+  </div>
+
+  <button
+    [disabled]="form().invalid()"
+    type="submit"
+    class="form__btn"
+    [class.is-disabled]="form().invalid() || form().submitting()"
+  >
+    @if (form().submitting()) {
+      submitting ...
+    } @else {
+      {{ btnMessage() }}
+    }
+  </button>
+  <div class="form__divider">
+    <span>or</span>
+  </div>
+  <button class="form__btn form__btn--google" type="button" (click)="onGoogleLogin()">
+    <span>Continue with Google</span>
+  </button>
+</form>

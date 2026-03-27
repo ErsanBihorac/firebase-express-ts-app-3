@@ -10,6 +10,7 @@ import {
   browserPopupRedirectResolver,
   User,
 } from '@angular/fire/auth';
+import { Router } from '@angular/router';
 import { BehaviorSubject, distinctUntilChanged, filter, map, pairwise } from 'rxjs';
 
 @Injectable({
@@ -17,6 +18,7 @@ import { BehaviorSubject, distinctUntilChanged, filter, map, pairwise } from 'rx
 })
 export class AuthService {
   auth = inject(Auth);
+  router = inject(Router);
   private readonly _user$ = new BehaviorSubject<User | null>(null);
   user$ = this._user$.asObservable();
 
@@ -35,14 +37,56 @@ export class AuthService {
     onAuthStateChanged(this.auth, (user: User | null) => {
       if (user) {
         this.setUser(user);
-        console.log('User is signed in');
+        this.goToHome();
+        console.log('user signed in');
       } else {
-        console.log('No user signed in');
+        this.setUser(null);
+        console.log('no user signed in');
       }
     });
   }
 
   setUser(user: User | null) {
     this._user$.next(user);
+  }
+
+  async login(email: string, password: string) {
+    const res = await signInWithEmailAndPassword(this.auth, email, password);
+    if (!res) return console.log('login was unsuccessful');
+
+    this.goToHome();
+    return res.user;
+  }
+
+  async register(email: string, password: string) {
+    const res = await createUserWithEmailAndPassword(this.auth, email, password);
+    if (!res) return console.log('registration was unsuccessful');
+
+    this.goToAuth();
+    return res.user;
+  }
+
+  async loginWithGooglePopup() {
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(this.auth, provider, browserPopupRedirectResolver);
+  }
+
+  async logout() {
+    try {
+      await signOut(this.auth);
+      this.goToAuth();
+      return true;
+    } catch (err) {
+      console.error('logout failed', err);
+      return false;
+    }
+  }
+
+  goToHome() {
+    this.router.navigate(['/']);
+  }
+
+  goToAuth() {
+    this.router.navigate(['/auth']);
   }
 }
