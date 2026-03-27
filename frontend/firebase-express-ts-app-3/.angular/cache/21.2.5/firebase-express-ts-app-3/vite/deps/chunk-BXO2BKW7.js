@@ -1,9 +1,6 @@
 import {
   pendingUntilEvent
-} from "./chunk-5PJN22EF.js";
-import {
-  openDB
-} from "./chunk-JS7UPFDT.js";
+} from "./chunk-L4YVT5NQ.js";
 import {
   Inject,
   Injectable,
@@ -13,7 +10,7 @@ import {
   isDevMode,
   setClassMetadata,
   ɵɵdefineNgModule
-} from "./chunk-FGCTMFXE.js";
+} from "./chunk-4GLMKDAM.js";
 import {
   EnvironmentInjector,
   InjectionToken,
@@ -28,7 +25,7 @@ import {
   ɵɵdefineInjectable,
   ɵɵdefineInjector,
   ɵɵinject
-} from "./chunk-IOEQ5MU2.js";
+} from "./chunk-4DSDVV6G.js";
 import {
   Observable,
   asyncScheduler,
@@ -39,8 +36,9 @@ import {
   queueScheduler,
   subscribeOn,
   timer
-} from "./chunk-U5BGXTXY.js";
+} from "./chunk-Y72XGDAT.js";
 import {
+  __spreadProps,
   __spreadValues
 } from "./chunk-GOMI4DH3.js";
 
@@ -340,6 +338,22 @@ var getDefaults = () => {
   }
 };
 var getDefaultEmulatorHost = (productName) => getDefaults()?.emulatorHosts?.[productName];
+var getDefaultEmulatorHostnameAndPort = (productName) => {
+  const host = getDefaultEmulatorHost(productName);
+  if (!host) {
+    return void 0;
+  }
+  const separatorIndex = host.lastIndexOf(":");
+  if (separatorIndex <= 0 || separatorIndex + 1 === host.length) {
+    throw new Error(`Invalid host ${host} with no separate hostname and port!`);
+  }
+  const port = parseInt(host.substring(separatorIndex + 1), 10);
+  if (host[0] === "[") {
+    return [host.substring(1, separatorIndex - 1), port];
+  } else {
+    return [host.substring(0, separatorIndex), port];
+  }
+};
 var getDefaultAppConfig = () => getDefaults()?.config;
 var getExperimentalSetting = (name3) => getDefaults()?.[`_${name3}`];
 var Deferred = class {
@@ -377,6 +391,41 @@ var Deferred = class {
     };
   }
 };
+function createMockUserToken(token, projectId) {
+  if (token.uid) {
+    throw new Error('The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.');
+  }
+  const header = {
+    alg: "none",
+    type: "JWT"
+  };
+  const project = projectId || "demo-project";
+  const iat = token.iat || 0;
+  const sub = token.sub || token.user_id;
+  if (!sub) {
+    throw new Error("mockUserToken must contain 'sub' or 'user_id' field!");
+  }
+  const payload = __spreadValues({
+    // Set all required fields to decent defaults
+    iss: `https://securetoken.google.com/${project}`,
+    aud: project,
+    iat,
+    exp: iat + 3600,
+    auth_time: iat,
+    sub,
+    user_id: sub,
+    firebase: {
+      sign_in_provider: "custom",
+      identities: {}
+    }
+  }, token);
+  const signature = "";
+  return [
+    base64urlEncodeWithoutPadding(JSON.stringify(header)),
+    base64urlEncodeWithoutPadding(JSON.stringify(payload)),
+    signature
+  ].join(".");
+}
 function getUA() {
   if (typeof navigator !== "undefined" && typeof navigator["userAgent"] === "string") {
     return navigator["userAgent"];
@@ -388,6 +437,19 @@ function isMobileCordova() {
   return typeof window !== "undefined" && // @ts-ignore Setting up an broadly applicable index signature for Window
   // just to deal with this case would probably be a bad idea.
   !!(window["cordova"] || window["phonegap"] || window["PhoneGap"]) && /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA());
+}
+function isNode() {
+  const forceEnvironment = getDefaults()?.forceEnvironment;
+  if (forceEnvironment === "node") {
+    return true;
+  } else if (forceEnvironment === "browser") {
+    return false;
+  }
+  try {
+    return Object.prototype.toString.call(global.process) === "[object process]";
+  } catch (e) {
+    return false;
+  }
 }
 function isBrowser() {
   return typeof window !== "undefined" || isWebWorker();
@@ -408,6 +470,12 @@ function isReactNative() {
 function isIE() {
   const ua = getUA();
   return ua.indexOf("MSIE ") >= 0 || ua.indexOf("Trident/") >= 0;
+}
+function isSafari() {
+  return !isNode() && !!navigator.userAgent && navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome");
+}
+function isSafariOrWebkit() {
+  return !isNode() && !!navigator.userAgent && (navigator.userAgent.includes("Safari") || navigator.userAgent.includes("WebKit")) && !navigator.userAgent.includes("Chrome");
 }
 function isIndexedDBAvailable() {
   try {
@@ -1158,6 +1226,212 @@ function setUserLogHandler(logCallback, options) {
     }
   }
 }
+
+// node_modules/idb/build/wrap-idb-value.js
+var instanceOfAny = (object, constructors) => constructors.some((c) => object instanceof c);
+var idbProxyableTypes;
+var cursorAdvanceMethods;
+function getIdbProxyableTypes() {
+  return idbProxyableTypes || (idbProxyableTypes = [
+    IDBDatabase,
+    IDBObjectStore,
+    IDBIndex,
+    IDBCursor,
+    IDBTransaction
+  ]);
+}
+function getCursorAdvanceMethods() {
+  return cursorAdvanceMethods || (cursorAdvanceMethods = [
+    IDBCursor.prototype.advance,
+    IDBCursor.prototype.continue,
+    IDBCursor.prototype.continuePrimaryKey
+  ]);
+}
+var cursorRequestMap = /* @__PURE__ */ new WeakMap();
+var transactionDoneMap = /* @__PURE__ */ new WeakMap();
+var transactionStoreNamesMap = /* @__PURE__ */ new WeakMap();
+var transformCache = /* @__PURE__ */ new WeakMap();
+var reverseTransformCache = /* @__PURE__ */ new WeakMap();
+function promisifyRequest(request) {
+  const promise = new Promise((resolve, reject) => {
+    const unlisten = () => {
+      request.removeEventListener("success", success);
+      request.removeEventListener("error", error);
+    };
+    const success = () => {
+      resolve(wrap(request.result));
+      unlisten();
+    };
+    const error = () => {
+      reject(request.error);
+      unlisten();
+    };
+    request.addEventListener("success", success);
+    request.addEventListener("error", error);
+  });
+  promise.then((value) => {
+    if (value instanceof IDBCursor) {
+      cursorRequestMap.set(value, request);
+    }
+  }).catch(() => {
+  });
+  reverseTransformCache.set(promise, request);
+  return promise;
+}
+function cacheDonePromiseForTransaction(tx) {
+  if (transactionDoneMap.has(tx))
+    return;
+  const done = new Promise((resolve, reject) => {
+    const unlisten = () => {
+      tx.removeEventListener("complete", complete);
+      tx.removeEventListener("error", error);
+      tx.removeEventListener("abort", error);
+    };
+    const complete = () => {
+      resolve();
+      unlisten();
+    };
+    const error = () => {
+      reject(tx.error || new DOMException("AbortError", "AbortError"));
+      unlisten();
+    };
+    tx.addEventListener("complete", complete);
+    tx.addEventListener("error", error);
+    tx.addEventListener("abort", error);
+  });
+  transactionDoneMap.set(tx, done);
+}
+var idbProxyTraps = {
+  get(target, prop, receiver) {
+    if (target instanceof IDBTransaction) {
+      if (prop === "done")
+        return transactionDoneMap.get(target);
+      if (prop === "objectStoreNames") {
+        return target.objectStoreNames || transactionStoreNamesMap.get(target);
+      }
+      if (prop === "store") {
+        return receiver.objectStoreNames[1] ? void 0 : receiver.objectStore(receiver.objectStoreNames[0]);
+      }
+    }
+    return wrap(target[prop]);
+  },
+  set(target, prop, value) {
+    target[prop] = value;
+    return true;
+  },
+  has(target, prop) {
+    if (target instanceof IDBTransaction && (prop === "done" || prop === "store")) {
+      return true;
+    }
+    return prop in target;
+  }
+};
+function replaceTraps(callback) {
+  idbProxyTraps = callback(idbProxyTraps);
+}
+function wrapFunction(func) {
+  if (func === IDBDatabase.prototype.transaction && !("objectStoreNames" in IDBTransaction.prototype)) {
+    return function(storeNames, ...args) {
+      const tx = func.call(unwrap(this), storeNames, ...args);
+      transactionStoreNamesMap.set(tx, storeNames.sort ? storeNames.sort() : [storeNames]);
+      return wrap(tx);
+    };
+  }
+  if (getCursorAdvanceMethods().includes(func)) {
+    return function(...args) {
+      func.apply(unwrap(this), args);
+      return wrap(cursorRequestMap.get(this));
+    };
+  }
+  return function(...args) {
+    return wrap(func.apply(unwrap(this), args));
+  };
+}
+function transformCachableValue(value) {
+  if (typeof value === "function")
+    return wrapFunction(value);
+  if (value instanceof IDBTransaction)
+    cacheDonePromiseForTransaction(value);
+  if (instanceOfAny(value, getIdbProxyableTypes()))
+    return new Proxy(value, idbProxyTraps);
+  return value;
+}
+function wrap(value) {
+  if (value instanceof IDBRequest)
+    return promisifyRequest(value);
+  if (transformCache.has(value))
+    return transformCache.get(value);
+  const newValue = transformCachableValue(value);
+  if (newValue !== value) {
+    transformCache.set(value, newValue);
+    reverseTransformCache.set(newValue, value);
+  }
+  return newValue;
+}
+var unwrap = (value) => reverseTransformCache.get(value);
+
+// node_modules/idb/build/index.js
+function openDB(name3, version3, { blocked, upgrade, blocking, terminated } = {}) {
+  const request = indexedDB.open(name3, version3);
+  const openPromise = wrap(request);
+  if (upgrade) {
+    request.addEventListener("upgradeneeded", (event) => {
+      upgrade(wrap(request.result), event.oldVersion, event.newVersion, wrap(request.transaction), event);
+    });
+  }
+  if (blocked) {
+    request.addEventListener("blocked", (event) => blocked(
+      // Casting due to https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1405
+      event.oldVersion,
+      event.newVersion,
+      event
+    ));
+  }
+  openPromise.then((db) => {
+    if (terminated)
+      db.addEventListener("close", () => terminated());
+    if (blocking) {
+      db.addEventListener("versionchange", (event) => blocking(event.oldVersion, event.newVersion, event));
+    }
+  }).catch(() => {
+  });
+  return openPromise;
+}
+var readMethods = ["get", "getKey", "getAll", "getAllKeys", "count"];
+var writeMethods = ["put", "add", "delete", "clear"];
+var cachedMethods = /* @__PURE__ */ new Map();
+function getMethod(target, prop) {
+  if (!(target instanceof IDBDatabase && !(prop in target) && typeof prop === "string")) {
+    return;
+  }
+  if (cachedMethods.get(prop))
+    return cachedMethods.get(prop);
+  const targetFuncName = prop.replace(/FromIndex$/, "");
+  const useIndex = prop !== targetFuncName;
+  const isWrite = writeMethods.includes(targetFuncName);
+  if (
+    // Bail if the target doesn't exist on the target. Eg, getAll isn't in Edge.
+    !(targetFuncName in (useIndex ? IDBIndex : IDBObjectStore).prototype) || !(isWrite || readMethods.includes(targetFuncName))
+  ) {
+    return;
+  }
+  const method = async function(storeName, ...args) {
+    const tx = this.transaction(storeName, isWrite ? "readwrite" : "readonly");
+    let target2 = tx.store;
+    if (useIndex)
+      target2 = target2.index(args.shift());
+    return (await Promise.all([
+      target2[targetFuncName](...args),
+      isWrite && tx.done
+    ]))[0];
+  };
+  cachedMethods.set(prop, method);
+  return method;
+}
+replaceTraps((oldTraps) => __spreadProps(__spreadValues({}, oldTraps), {
+  get: (target, prop, receiver) => getMethod(target, prop) || oldTraps.get(target, prop, receiver),
+  has: (target, prop) => !!getMethod(target, prop) || oldTraps.has(target, prop)
+}));
 
 // node_modules/@angular/fire/node_modules/@firebase/app/dist/esm/index.esm.js
 var PlatformLoggerServiceImpl = class {
@@ -2220,14 +2494,18 @@ export {
   base64Decode,
   getGlobal,
   getDefaultEmulatorHost,
+  getDefaultEmulatorHostnameAndPort,
   getExperimentalSetting,
   Deferred,
+  createMockUserToken,
   getUA,
   isMobileCordova,
   isCloudflareWorker,
   isBrowserExtension,
   isReactNative,
   isIE,
+  isSafari,
+  isSafariOrWebkit,
   isIndexedDBAvailable,
   FirebaseError,
   ErrorFactory,
@@ -2243,6 +2521,7 @@ export {
   Component,
   LogLevel,
   Logger,
+  openDB,
   DEFAULT_ENTRY_NAME2 as DEFAULT_ENTRY_NAME,
   _apps,
   _serverApps,
@@ -2278,4 +2557,4 @@ export {
   registerVersion2,
   setLogLevel3 as setLogLevel
 };
-//# sourceMappingURL=chunk-MVZMEWRG.js.map
+//# sourceMappingURL=chunk-BXO2BKW7.js.map

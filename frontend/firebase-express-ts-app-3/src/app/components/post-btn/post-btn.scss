@@ -1,0 +1,29 @@
+@use '../../colors.scss' as *;
+
+:host {
+  display: block;
+  /* Set these to your gradient colors */
+  --title-gradient-start: #{$accent-1};
+  --title-gradient-end: #{$accent-2};
+  --button-gradient-start: #{$accent-1};
+  --button-gradient-end: #{$accent-2};
+}
+
+.post-btn {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: $primary-text;
+  background: linear-gradient(90deg, var(--button-gradient-start), var(--button-gradient-end));
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  }
+}

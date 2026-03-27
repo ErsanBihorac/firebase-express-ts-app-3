@@ -1,0 +1,126 @@
+@use '../../colors.scss' as *;
+
+:host {
+  display: block;
+  padding: 24px 0;
+}
+
+.post-card {
+  width: min(420px, 92vw);
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.post-card__stack {
+  position: relative;
+  aspect-ratio: 1 / 1;
+}
+
+.post-card__media {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #{mix(#ffffff, $background, 12%)} 0%, #{$background} 100%);
+  border: 1px solid #{mix(#ffffff, $background, 22%)};
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  transition:
+    transform 260ms ease,
+    opacity 260ms ease;
+}
+
+.post-card__meta {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  color: $secondary-text;
+}
+
+.post-card__author {
+  font-weight: 600;
+}
+
+.post-card__likes {
+  font-weight: 500;
+}
+
+.post-card__text {
+  color: $secondary-text;
+  font-size: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.post-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.post-card__media--front.is-reset {
+  transition: none;
+}
+
+.post-card__media--back {
+  transform: scale(0.94) translateY(6%);
+  opacity: 0.55;
+  filter: blur(0.2px);
+}
+
+.post-card__media--front {
+  transform: translateX(0) rotate(0);
+}
+
+.post-card__media.is-swipe-right {
+  transform: translateX(65%) rotate(6deg);
+  opacity: 0;
+}
+
+.post-card__media.is-swipe-left {
+  transform: translateX(-65%) rotate(-6deg);
+  opacity: 0;
+}
+
+.post-card__btn {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.post-card__btn--like {
+  background: linear-gradient(90deg, #{$accent-1}, #{$accent-2});
+  color: $primary-text;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.post-card__btn--skip {
+  background: #{mix(#ffffff, $background, 12%)};
+  color: $secondary-text;
+  border-color: #{mix(#ffffff, $background, 22%)};
+}

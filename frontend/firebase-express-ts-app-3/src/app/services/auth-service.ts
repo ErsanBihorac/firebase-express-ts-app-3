@@ -22,6 +22,12 @@ export class AuthService {
   private readonly _user$ = new BehaviorSubject<User | null>(null);
   user$ = this._user$.asObservable();
 
+  getCurrentUser() {
+    const user = this._user$.getValue();
+    if (user == null) console.log('no current user available');
+    return user;
+  }
+
   isLoggedIn$ = this.user$.pipe(
     map((user) => user !== null),
     distinctUntilChanged(), // gibt nur neue Werte weiter, wenn sich der boolean wirklich ändert

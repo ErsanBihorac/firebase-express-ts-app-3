@@ -1,1 +1,31 @@
-<p>post-create works!</p>
+<app-post-btn class="padding"></app-post-btn>
+
+<form (submit)="submitPost($event)" class="create">
+  <div class="create__field">
+    <label for="postText">Post Text</label>
+    <textarea
+      [formField]="postForm.text"
+      id="post"
+      autocomplete="off"
+      rows="5"
+      placeholder="Write your post here..."
+    ></textarea>
+    @if (postForm.text().touched() && postForm.text().invalid()) {
+      <span>{{ errMessage() }}</span>
+    } @else if (this.authService.getCurrentUser() == null) {
+      <span>only logged in users can post</span>
+    }
+  </div>
+
+  <button
+    [disabled]="postForm().invalid() || postForm().submitting()"
+    type="submit"
+    class="create__btn"
+  >
+    @if (postForm().submitting()) {
+      submitting ...
+    } @else {
+      create post
+    }
+  </button>
+</form>

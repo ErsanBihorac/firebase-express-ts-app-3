@@ -1,1 +1,21 @@
-<p>post works!</p>
+<div class="post-card">
+  <div class="post-card__stack">
+    <div class="post-card__media post-card__media--back"></div>
+    <div
+      class="post-card__media post-card__media--front"
+      [class.is-swipe-right]="swipeDir() === 'right'"
+      [class.is-swipe-left]="swipeDir() === 'left'"
+      [class.is-reset]="isResetting()"
+    >
+      <div class="post-card__meta">
+        <span class="post-card__author">@{{ currentAuthor() }}</span>
+        <span class="post-card__likes">{{ currentLikes() }} likes</span>
+      </div>
+      <div class="post-card__text">{{ currentText() }}</div>
+    </div>
+  </div>
+  <div class="post-card__actions">
+    <button class="post-card__btn post-card__btn--skip" type="button" (click)="skip()">Skip</button>
+    <button class="post-card__btn post-card__btn--like" type="button" (click)="like()">Like</button>
+  </div>
+</div>

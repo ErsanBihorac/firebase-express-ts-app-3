@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth-service';
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
-export class Header implements OnInit {
+export class Header {
   authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -18,14 +18,6 @@ export class Header implements OnInit {
   user = toSignal(this.user$, { initialValue: null });
   appTitle = signal('Appidea');
   btnMessage = computed(() => (this.user() !== null ? 'sign out' : 'sign in'));
-
-  ngOnInit(): void {
-    this.authService.onLogin$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
-      if (user) {
-      } else {
-      }
-    });
-  }
 
   async logoutOrSignin() {
     if (this.user !== null) {
