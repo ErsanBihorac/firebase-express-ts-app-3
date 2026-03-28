@@ -4,4 +4,5 @@ export type Post = {
   userId: string;
   userName: string;
   createdAt: unknown;
+  likes?: number;
 };

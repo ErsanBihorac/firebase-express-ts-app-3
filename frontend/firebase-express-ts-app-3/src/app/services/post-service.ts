@@ -21,7 +21,7 @@ export class PostService {
   private readonly postsRef = collection(this.firestore, 'posts');
   authService = inject(AuthService);
 
-  createPost(text: string) {
+  async createPost(text: string) {
     const user = this.authService.getCurrentUser() as User;
 
     const doc: Post = {
@@ -29,13 +29,14 @@ export class PostService {
       userId: user.uid,
       userName: user.displayName ?? 'no display name',
       createdAt: serverTimestamp(),
+      likes: 0,
     };
 
-    return addDoc(this.postsRef, doc);
+    return await addDoc(this.postsRef, doc);
   }
 
-  // getPosts(): Observable<Post[]> {
-  //   const q = query(this.postsRef, orderBy('createdAt', 'desc'));
-  //   return collectionData(q, { idField: 'id' }) as Observable<Post[]>;
-  // }
+  getPosts() {
+    const q = query(this.postsRef);
+    return collectionData(q, { idField: 'id' }) as Observable<Post[]>;
+  }
 }

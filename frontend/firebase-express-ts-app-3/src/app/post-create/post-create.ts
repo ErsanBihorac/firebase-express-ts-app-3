@@ -3,8 +3,7 @@ import { Post } from '../interfaces/post.interface';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { PostService } from '../services/post-service';
 import { AuthService } from '../services/auth-service';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 
 @Component({
   selector: 'app-post-create',
